@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>タイピングゲーム</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            margin: 50px auto;
+            max-width: 600px;
+        }
+        #word {
+            font-size: 2em;
+            margin: 20px 0;
+        }
+        #inputField {
+            font-size: 1.2em;
+            padding: 10px;
+            width: 80%;
+        }
+        .score {
+            margin: 20px 0;
+            font-size: 1.5em;
+        }
+        .difficulty {
+            margin: 20px 0;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 1em;
+            margin: 10px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>タイピングゲーム</h1>
+        <p>難易度を選んで、単語を正確にタイプしてください：</p>
+        <div class="difficulty">
+            <button onclick="setDifficulty('easy')">簡単</button>
+            <button onclick="setDifficulty('normal')">普通</button>
+            <button onclick="setDifficulty('hard')">難しい</button>
+        </div>
+        <div id="word">ここに単語が表示されます</div>
+        <input type="text" id="inputField" placeholder="ここに入力" />
+        <div class="score">
+            <p>スコア: <span id="score">0</span></p>
+        </div>
+    </div>
+
+    <script>
+        const words = {
+            easy: [
+                "あさにおきて、ごはんをたべてがっこうにいきます。", 
+                "いぬがこうえんではしりまわっています。", 
+                "そらにはたくさんのくもがうかんでいます。", 
+                "たんじょうびにはけーきをたべます。", 
+                "まいにちうちゅうのえいがをみるのがすきです。"
+            ],
+            normal: [
+                "こんにちは、わたしのなまえはたろうです。", 
+                "たいふうのあとにはきれいなにじがでます。", 
+                "でんしゃのなかはいつもこんでいますが、よるはすいています。", 
+                "がっこうのじゅぎょうでは、あたらしいことをたくさんまなびます。", 
+                "ちきゅうのきおんがあがると、かんきょうへいきょうがおおきくなります。"
+            ],
+            hard: [
+                "プログラミング言語の一つであるJavaScriptは、ウェブ開発でよく使われる言語です。", 
+                "オブジェクト指向プログラミングは、コードを再利用しやすくするための重要な概念です。", 
+                "サーバーサイドレンダリングは、クライアント側の負荷を軽減するための技術です。", 
+                "コンピューターサイエンスにおいて、アルゴリズムは問題解決の手順を表すものです。", 
+                "セキュリティの向上には、暗号化技術やファイアウォールの導入が効果的です。", 
+                "ディジタルトランスフォーメーションは、ビジネスの効率を向上させるための戦略的な変革です。", 
+                "人工知能の発展により、画像認識や自然言語処理が飛躍的に進化しています。", 
+                "クラウドコンピューティングは、リモートのサーバーを使用してデータを処理する技術です。", 
+                "機械学習は、大量のデータからパターンを学習し、予測や意思決定を支援する技術です。", 
+                "ディープラーニングは、ニューラルネットワークを用いて複雑な問題を解決する手法です。"
+            ],
+        };
+
+        let currentWord = "";
+        let score = 0;
+        let difficulty = getCookie('difficulty') || 'normal'; // デフォルトの難易度は「普通」
+
+        const wordElement = document.getElementById("word");
+        const inputField = document.getElementById("inputField");
+        const scoreElement = document.getElementById("score");
+
+        // タイプ音をロード
+        const typeSound = new Audio('https://www.soundjay.com/button/beep-07.wav');
+
+        function setNewWord() {
+            const wordList = words[difficulty];
+            currentWord = wordList[Math.floor(Math.random() * wordList.length)];
+            wordElement.textContent = currentWord;
+            inputField.value = "";
+        }
+
+        inputField.addEventListener("input", () => {
+            typeSound.currentTime = 0; // 再生位置をリセット
+            typeSound.play(); // 音を再生
+            if (inputField.value === currentWord) {
+                score++;
+                scoreElement.textContent = score;
+                setCookie('score', score, 7);
+                setNewWord();
+            }
+        });
+
+        function setDifficulty(level) {
+            difficulty = level;
+            score = 0; // スコアをリセット
+            setCookie('difficulty', difficulty, 7);
+            setCookie('score', score, 7);
+            scoreElement.textContent = score;
+            setNewWord();
+        }
+
+        function setCookie(name, value, days) {
+            const date = new Date();
+            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+            document.cookie = `${name}=${value};expires=${date.toUTCString()};path=/`;
+        }
+
+        function getCookie(name) {
+            const nameEQ = name + "=";
+            const ca = document.cookie.split(';');
+            for(let i = 0; i < ca.length; i++) {
+                let c = ca[i];
+                while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+                if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+            }
+            return null;
+        }
+
+        // 初期化
+        score = parseInt(getCookie('score')) || 0;
+        scoreElement.textContent = score;
+        setNewWord();
+    </script>
+</body>
+</html>
