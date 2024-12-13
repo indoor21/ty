@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>タイピングバトルゲーム</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .container {
+            background-color: #34495e;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            padding: 40px;
+            text-align: center;
+            width: 90%;
+            max-width: 800px;
+            position: relative;
+        }
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            color: #e74c3c;
+        }
+        .battlefield {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 20px 0;
+        }
+        .character, .monster {
+            width: 100px;
+            height: 100px;
+            background-color: #e74c3c;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2em;
+            color: #fff;
+            position: relative;
+        }
+        .character {
+            background-color: #3498db;
+        }
+        .character .level {
+            position: absolute;
+            top: -20px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            font-size: 1em;
+            color: #fff;
+        }
+        .monster {
+            background-color: #c0392b;
+        }
+        .monster .hp-bar {
+            position: absolute;
+            top: -20px;
+            left: 0;
+            width: 100%;
+            height: 10px;
+            background-color: #e74c3c;
+        }
+        .monster .hp-bar-inner {
+            width: 100%;
+            height: 100%;
+            background-color: #2ecc71;
+        }
+        #word {
+            font-size: 2em;
+            margin: 20px 0;
+            background-color: #2c3e50;
+            padding: 20px;
+            border-radius: 10px;
+            color: #ecf0f1;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+        }
+        .score {
+            font-size: 1.5em;
+            margin-top: 20px;
+        }
+        .score span {
+            font-weight: bold;
+            color: #e67e22;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>タイピングバトルゲーム</h1>
+        <div class="battlefield">
+            <div class="character">
+                味方
+                <div class="level" id="level">Lv 1</div>
+            </div>
+            <div class="monster">
+                モンスター
+                <div class="hp-bar">
+                    <div class="hp-bar-inner" id="monster-hp"></div>
+                </div>
+            </div>
+        </div>
+        <div id="word">ここに単語が表示されます</div>
+        <div class="score">
+            <p>スコア: <span id="score">0</span></p>
+        </div>
+    </div>
+
+    <script>
+        const words = [
+            "プログラミング", "アルゴリズム", "地球温暖化", "人工知能", "機械学習", 
+            "データベース", "セキュリティ", "電子商取引", "インターネット", "バイオテクノロジー", 
+            "ナノテクノロジー", "モバイルアプリ", "オープンソース", "サイバー攻撃", "クラウドコンピューティング", 
+            "分散システム", "コンパイラ", "暗号化", "ブロックチェーン", "電磁波", 
+            "自然言語処理", "ロボット工学", "バーチャルリアリティ", "拡張現実", "ソーシャルメディア", 
+            "電子マネー", "スマートデバイス", "デジタルトランスフォーメーション", "量子コンピュータ", "ソフトウェア開発"
+        ];
+
+        let currentWord = "";
+        let score = 0;
+        let monsterHp = 100;
+        let level = 1;
+        let experience = 0;
+        const monsterHpBar = document.getElementById('monster-hp');
+        const wordElement = document.getElementById("word");
+        const scoreElement = document.getElementById("score");
+        const levelElement = document.getElementById("level");
+
+        function setNewWord() {
+            currentWord = words[Math.floor(Math.random() * words.length)];
+            wordElement.textContent = currentWord;
+        }
+
+        function saveProgress() {
+            document.cookie = `score=${score}; path=/`;
+            document.cookie = `level=${level}; path=/`;
+            document.cookie = `experience=${experience}; path=/`;
+        }
+
+        function loadProgress() {
+            const cookies = document.cookie.split('; ');
+            cookies.forEach(cookie => {
+                const [key, value] = cookie.split('=');
+                if (key === 'score') score = parseInt(value);
+                if (key === 'level') level = parseInt(value);
+                if (key === 'experience') experience = parseInt(value);
+            });
+            scoreElement.textContent = score;
+            levelElement.textContent = `Lv ${level}`;
+        }
+
+        document.addEventListener("keydown", (event) => {
+            const key = event.key;
+            const expectedChar = currentWord.charAt(0);
+            if (key === expectedChar) {
+                currentWord = currentWord.slice(1);
+                wordElement.textContent = currentWord;
+                if (currentWord.length === 0) {
+                    score++;
+                    experience += 10;
+                    updateExperience();
+                    scoreElement.textContent = score;
+                    damageMonster(20);
+                    saveProgress();
+                    setNewWord();
+                }
+            }
+        });
+
+        function damageMonster(damage) {
+            monsterHp -= damage;
+            if (monsterHp <= 0) monsterHp = 100;
+            monsterHpBar.style.width = monsterHp + '%';
+        }
+
+        function updateExperience() {
+            if (experience >= 100) {
+                level++;
+                experience = 0;
+                levelElement.textContent = `Lv ${level}`;
+            }
+        }
+
+        loadProgress();
+        setNewWord();
+    </script>
+</body>
+</html>
+
