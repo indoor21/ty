@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>タイピングバトルゲーム</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #1a1a2e;
+            color: #ecf0f1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .container {
+            background-color: #16213e;
+            border-radius: 15px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.5);
+            padding: 50px;
+            text-align: center;
+            width: 90%;
+            max-width: 900px;
+            position: relative;
+        }
+        h1 {
+            font-size: 3em;
+            margin-bottom: 20px;
+            color: #e94560;
+        }
+        .battlefield {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 20px 0;
+            background-image: url('battlefield.jpg');
+            background-size: cover;
+            border: 3px solid #e94560;
+            border-radius: 10px;
+            padding: 20px;
+        }
+        .character, .monster {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2em;
+            color: #fff;
+            position: relative;
+        }
+        .character {
+            background-color: #3498db;
+        }
+        .monster {
+            background-color: #c0392b;
+        }
+        .hp-bar {
+            width: 100%;
+            height: 10px;
+            background-color: #e74c3c;
+            position: absolute;
+            bottom: -20px;
+            left: 0;
+            border-radius: 5px;
+        }
+        .hp-bar-inner {
+            height: 100%;
+            background-color: #2ecc71;
+            width: 100%;
+            border-radius: 5px;
+        }
+        .monster .hp-bar-inner {
+            background-color: #e74c3c;
+        }
+        #word {
+            font-size: 2em;
+            margin: 20px 0;
+        }
+        #timer {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+        }
+        #score {
+            font-size: 1.2em;
+            margin-bottom: 20px;
+        }
+        .modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #16213e;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            display: none;
+        }
+        .modal h2 {
+            margin-bottom: 20px;
+            color: #e94560;
+        }
+        .modal button {
+            background-color: #3498db;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+        }
+        .modal button:hover {
+            background-color: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>タイピングバトルゲーム</h1>
+        <div id="timer">残り時間: <span id="time-left">10</span> 秒</div>
+        <div id="score">スコア: <span id="current-score">0</span></div>
+        <div class="battlefield">
+            <div class="character">
+                <img src="character.png" alt="味方">
+                <div class="hp-bar">
+                    <div class="hp-bar-inner" id="character-hp"></div>
+                </div>
+            </div>
+            <div class="monster">
+                <img src="monster.png" alt="モンスター">
+                <div class="hp-bar">
+                    <div class="hp-bar-inner" id="monster-hp"></div>
+                </div>
+            </div>
+        </div>
+        <div id="word"></div>
+    </div>
+
+    <div class="modal" id="game-modal">
+        <h2 id="modal-message"></h2>
+        <button onclick="restartGame()">再挑戦</button>
+    </div>
+
+    <script>
+        let words = [
+            "プログラミング", "アルゴリズム", "地球温暖化", "人工知能", "機械学習", 
+            "データベース", "セキュリティ", "電子商取引", "インターネット", "バイオテクノロジー"
+        ];
+
+        let currentWord = "";
+        let inputBuffer = "";
+        let characterHp = 100;
+        let monsterHp = 100;
+        let score = 0;
+        let stage = 1;
+        let timeLeft = 10;
+        let timer;
+
+        function updateHpBars() {
+            document.getElementById('character-hp').style.width = characterHp + "%";
+            document.getElementById('monster-hp').style.width = monsterHp + "%";
+        }
+
+        function updateTimer() {
+            document.getElementById('time-left').textContent = timeLeft;
+        }
+
+        function updateScore() {
+            document.getElementById('current-score').textContent = score;
+        }
+
+        function startGame() {
+            currentWord = words[Math.floor(Math.random() * words.length)];
+            document.getElementById('word').textContent = currentWord;
+            inputBuffer = "";
+            timeLeft = Math.max(5, 10 - stage);
+            updateTimer();
+            timer = setInterval(() => {
+                timeLeft--;
+                updateTimer();
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    characterHp -= 10;
+                    updateHpBars();
+                    if (characterHp <= 0) {
+                        showModal("ゲームオーバー");
+                    } else {
+                        startGame();
+                    }
+                }
+            }, 1000);
+        }
+
+        function handleInput(key) {
+            inputBuffer += key;
+            if (currentWord.startsWith(inputBuffer)) {
+                if (currentWord === inputBuffer) {
+                    monsterHp -= 20;
+                    score += 10;
+                    updateScore();
+                    clearInterval(timer);
+                    if (monsterHp <= 0) {
+                        stage++;
+                        increaseDifficulty();
+                        showModal("ステージクリア！");
+                    } else {
+                        startGame();
+                    }
+                }
+            } else {
+                inputBuffer = "";
+                characterHp -= 10;
+                updateHpBars();
+                if (characterHp <= 0) {
+                    clearInterval(timer);
+                    showModal("ゲームオーバー");
+                }
+            }
+        }
+
+        function increaseDifficulty() {
+            words = words.map(word => word + "!");
+        }
+
+        function showModal(message) {
+            const modal = document.getElementById('game-modal');
+            document.getElementById('modal-message').textContent = message;
+            modal.style.display = 'block';
+        }
+
+        function restartGame() {
+            characterHp = 100;
+            monsterHp = 100;
+            stage = 1;
+            score = 0;
+            document.getElementById('game-modal').style.display = 'none';
+            updateHpBars();
+            updateScore();
+            startGame();
+        }
+
+        document.addEventListener('keydown', (event) => {
+            if (/^[ぁ-んー]$/.test(event.key)) {
+                handleInput(event.key);
+            }
+        });
+
+        updateHpBars();
+        updateScore();
+        startGame();
+    </script>
+</body>
+</html>
